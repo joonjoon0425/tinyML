@@ -18,7 +18,7 @@ class Tensor:
         '''
         This constructor only receives NDArray or list type.
         Never allow 1-dimensional array! Change it to 2-dimensional array, internally. --> column shaped
-        This will occur some inconvinience.
+        This will cause some inconvenience.
         Plus, use float64 in all arrays.
         '''
         # ensure that the self.data is xp.ndarray
@@ -28,6 +28,15 @@ class Tensor:
         self.requires_grad = requires_grad
         self.creator = None
         self.generation = None
+
+    def to(self, device):
+        '''
+        Move data to device
+        '''
+        if device == 'cpu':
+            self.data = cp.asnumpy(self.data)
+        elif device == 'gpu' or device == 'cuda':
+            self.data = cp.asarray(self.data)
     
     # implement backward (the most important)
     def backward(self, grad):
@@ -58,8 +67,6 @@ class Tensor:
     @property
     def T(self):
         pass
-
-
 
     @staticmethod
     def _ensure_asarray(data):
