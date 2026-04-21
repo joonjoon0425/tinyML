@@ -28,6 +28,38 @@ class Tensor:
         self.requires_grad = requires_grad
         self.creator = None
         self.generation = None
+    
+    # implement backward (the most important)
+    def backward(self, grad):
+        pass
+
+    # implement the operators
+    # this time, think carefully
+    # 1. broadcast
+    # 2. requires_grad
+    def __add__(self, other):
+        pass
+    def __radd__(self, other):
+        pass
+    def __matmul__(self, other):
+        pass
+    def __rmatmul__(self, other):
+        pass
+    def __mul__(self, other):
+        pass
+    def __rmul__(self, other):
+        pass
+    def __pow__(self, exponent):
+        pass
+    def __neg__(self):
+        pass
+    def __sub__(self):
+        pass
+    @property
+    def T(self):
+        pass
+
+
 
     @staticmethod
     def _ensure_asarray(data):
@@ -55,6 +87,9 @@ class Tensor:
     @property
     def ndim(self):
         return self.data.ndim
+    
+    def __repr__(self):
+        return f'{self.data}'
 
 # tensor generators
 # 1. From existing Tensors, with same data
@@ -72,10 +107,15 @@ def tensor(tensor_data):
 
 def as_tensor(data):
     '''
-    Create a new tensor, using the tensor_data or given list as view, but detaching from the caculation graph.
+    Create a new tensor, using the tensor_data, NDArray or given list, but detaching from the caculation graph.
+    copies if a list is given, but uses view if Tensor or NDArray is given.
     '''
-    if isinstance(data, list):
+    if isinstance(data, (int, float)):
+        data = np.array(data, dtype=np.float64)
+    elif isinstance(data, list):
         data = Tensor._ensure_asarray(data)
+    elif isinstance(data, Tensor):
+        data = data.data
     # now data is NDArray type
     xp = get_array_module(data)
     data = xp.asarray(data)
@@ -84,22 +124,33 @@ def as_tensor(data):
 
 # 2. From existing Tensors, with same shape
 def zeros_like(tensor_data):
-    pass
+    xp = get_array_module(tensor_data.data)
+    data = xp.zeros_like(tensor_data.data, dtype=xp.float64)
+    return Tensor(data)
 def ones_like(tensor_data):
-    pass
+    xp = get_array_module(tensor_data.data)
+    data = xp.ones_like(tensor_data.data, dtype=xp.float64)
+    return Tensor(data)
 def full_like(tensor_data, fill_value):
-    pass
-def rand_like(tensor_data):
-    pass
+    xp = get_array_module(tensor_data.data)
+    data = xp.full_like(tensor_data.data, fill_value=fill_value, dtype=xp.float64)
+    return Tensor(data)
+def empty_like(tensor_data):
+    xp = get_array_module(tensor_data.data)
+    data = xp.empty_like(tensor_data.data, dtype=xp.float64)
+    return Tensor(data)
 # 3. From shape
 def zeros(shape):
-    pass
+    data = np.zeros(shape=shape, dtype=np.float64)
+    return Tensor(data)
 def ones(shape):
-    pass
+    data = np.ones(shape=shape, dtype=np.float64)
+    return Tensor(data)
 def full(shape, fill_value):
-    pass
-def rand(shape):
-    pass
+    data = np.full(shape=shape, fill_value=fill_value, dtype=np.float64)
+    return Tensor(data)
+def empty(shape):
+    return np.empty(shape=shape, dtype=np.float64)
 
 def get_array_module(data):
     '''

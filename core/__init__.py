@@ -1,3 +1,11 @@
 from ._tensor import (Tensor,
                      tensor,
-                     as_tensor)
+                     as_tensor,
+                     zeros,
+                     ones,
+                     full,
+                     empty,
+                     zeros_like,
+                     ones_like,
+                     full_like,
+                     empty_like)
