@@ -67,17 +67,21 @@ class Tensor:
         return self.__matmul__(other)
     
     def __mul__(self, other):
-        pass
+        from ._function import Mul
+        if isinstance(other, (int, float)):
+            other = as_tensor(other)
+        return Mul()(self, other)
     def __rmul__(self, other):
-        pass
+        return self.__mul__(other)
+    
     def __pow__(self, exponent):
         pass
+
     def __neg__(self):
         from ._function import Neg
         return Neg()(self)
     def __sub__(self, other):
-        from ._function import Add
-        return Add()(self, -other)
+        return self + (-other)
     def __rsub__(self, other):
         return self.__sub__(other)
     @property

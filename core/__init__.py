@@ -11,4 +11,7 @@ from ._tensor import (Tensor,
                      empty_like)
 from ._function import (Function,
                         Add,
-                        MatMul)
+                        MatMul,
+                        Transpose,
+                        Neg,
+                        Mul)

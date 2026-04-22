@@ -49,6 +49,7 @@ class Add(Function):
     def forward(self, x1, x2):
         # warning: Take NDArray type
         return x1 + x2
+    
     def backward(self, gy):
         assert gy is not None, 'gradient is None.'
         assert gy.ndim > 1, f'gy.ndim is smaller than 2, gy.ndim: {gy.ndim}'
@@ -101,6 +102,22 @@ class Transpose(Function):
 class Neg(Function):
     def forward(self, x):
         return -x
+    
     def backward(self, gy):
         assert gy is not None, 'gradient is None'
         return -gy
+    
+class Mul(Function):
+    def forward(self, x1, x2):
+        assert x1.ndim > 1 and x2.ndim > 1, f'x1.ndim: {x1.ndim}, x2.ndim: {x2.ndim}'
+        return x1 * x2
+    
+    def backward(self, gy):
+        assert gy is not None, f'gradient is None'
+        x1 = self.inputs[0].data
+        x2 = self.inputs[1].data
+        gx1 = gy * x2
+        gx2 = gy * x1
+        gx1 = sum_to(gx1, x1.shape)
+        gx2 = sum_to(gx2, x2.shape)
+        return gx1, gx2

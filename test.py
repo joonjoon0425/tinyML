@@ -91,6 +91,54 @@ class CompositeTest(unittest.TestCase):
     def test_MatMul_and_Add_with_scalar(self):
         x0 = core.as_tensor([[1, 2, 3], [1, 2, -1]], requires_grad=False)
         x1 = core.as_tensor([3, 4, -1], requires_grad=True)
-        y = x0 @ x1 + 2
+        x2 = core.as_tensor(2, True)
+        y = x0 @ (2 * x1) + x2
+        y.backward()
 
-        print(x1.grad)
+class GradCorrectTest(unittest.TestCase):
+    def setUp(self):
+        self.eps = 1e-4
+        self.tol = 1e-6
+    
+    def test_composite(self):
+        val = np.asarray([[1, 2, 3], [1, 2, 3], [1, 2, 3]], dtype=np.float64)
+        x = core.as_tensor(val, requires_grad=True)
+        y = f1(x)
+        y.backward()
+        dy_dx = numerical_grad(f1, val)
+        
+        np.testing.assert_allclose(x.grad, dy_dx)
+        
+        
+def f1(x):
+    W = np.asarray([[1, 3, -1], [2, 3, -1]], dtype=np.float64)
+    if isinstance(x, np.ndarray):
+        result = W @ x + 2
+    else:
+        W = core.as_tensor(W)
+        result = W @ x + 2
+    return result
+
+def numerical_grad(f, x_, eps=1e-4):
+    x = np.array(x_)
+    x = np.atleast_2d(x)
+    grad = np.zeros_like(x)
+
+    it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    while not it.finished:
+        idx = it.multi_index
+        tmp_val = x[idx]
+
+        # f(x + eps)
+        x[idx] = tmp_val + eps
+        y1 = f(x)
+        # f(x - eps)
+        x[idx] = tmp_val - eps
+        y2 = f(x)
+
+        grad[idx] = (y1.sum() - y2.sum()) / (2 * eps)
+
+        x[idx] = tmp_val
+        it.iternext()
+    
+    return np.atleast_2d(grad)
