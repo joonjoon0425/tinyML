@@ -1,5 +1,6 @@
 import numpy as np
 import warnings
+from ._autograd import _backward
 
 # check if cupy is available
 try:
@@ -12,7 +13,7 @@ class Tensor:
     '''
     A tensor class.
 
-    **warning**: Do not use 1-dimensional array.
+    **warning**: Do not use 1-dimensional array, or 0-dimensional array
     '''
     def __init__(self, data, requires_grad=False):
         '''
@@ -23,11 +24,12 @@ class Tensor:
         '''
         # ensure that the self.data is xp.ndarray
         self.data = Tensor._ensure_asarray(data)
-        if self.data.ndim == 1:
+        if self.data.ndim < 2:
             self.data = self.data.reshape(-1, 1)
         self.requires_grad = requires_grad
         self.creator = None
-        self.generation = None
+        self.generation = 0
+        self.grad = None
 
     def to(self, device):
         '''
@@ -39,21 +41,31 @@ class Tensor:
             self.data = cp.asarray(self.data)
     
     # implement backward (the most important)
-    def backward(self, grad):
-        pass
+    def backward(self, gy=None):
+        _backward(self, xp=get_array_module(self.data), gy=gy)
 
     # implement the operators
     # this time, think carefully
     # 1. broadcast
     # 2. requires_grad
     def __add__(self, other):
-        pass
+        from ._function import Add
+        if isinstance(other, (int, float)):
+            other = as_tensor(other)
+        return Add()(self, other)
     def __radd__(self, other):
-        pass
+        return self.__add__(other)
+    
     def __matmul__(self, other):
-        pass
+        from ._function import MatMul
+        assert not isinstance(other, (int, float)), 'received pure scaler value. guess we should fix the code'
+#        if isinstance(other, (int, float)):
+#           other = as_tensor(other)
+        return MatMul()(self, other)
     def __rmatmul__(self, other):
-        pass
+        assert isinstance(other, (int, float)), 'received tensor value. guess we should fix the code'
+        return self.__matmul__(other)
+    
     def __mul__(self, other):
         pass
     def __rmul__(self, other):
@@ -61,12 +73,17 @@ class Tensor:
     def __pow__(self, exponent):
         pass
     def __neg__(self):
-        pass
-    def __sub__(self):
-        pass
+        from ._function import Neg
+        return Neg()(self)
+    def __sub__(self, other):
+        from ._function import Add
+        return Add()(self, -other)
+    def __rsub__(self, other):
+        return self.__sub__(other)
     @property
     def T(self):
-        pass
+        from ._function import Transpose
+        return Transpose()(self)
 
     @staticmethod
     def _ensure_asarray(data):
@@ -112,7 +129,7 @@ def tensor(tensor_data):
     instance.generation = tensor_data.generation
     return instance
 
-def as_tensor(data):
+def as_tensor(data, requires_grad=False):
     '''
     Create a new tensor, using the tensor_data, NDArray or given list, but detaching from the caculation graph.
     copies if a list is given, but uses view if Tensor or NDArray is given.
@@ -126,7 +143,7 @@ def as_tensor(data):
     # now data is NDArray type
     xp = get_array_module(data)
     data = xp.asarray(data)
-    instance = Tensor(data=data, requires_grad=False)
+    instance = Tensor(data=data, requires_grad=requires_grad)
     return instance
 
 # 2. From existing Tensors, with same shape
