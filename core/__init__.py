@@ -9,3 +9,11 @@ from ._tensor import (Tensor,
                      ones_like,
                      full_like,
                      empty_like)
+from ._function import (Function,
+                        Add,
+                        MatMul,
+                        Transpose,
+                        Neg,
+                        Mul,
+                        Pow,
+                        Div)
