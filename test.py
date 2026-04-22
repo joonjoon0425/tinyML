@@ -34,7 +34,7 @@ class AddTest(unittest.TestCase):
         f = core.Add()
 
         y = 1 + x0
-        self.assertEqual(y.creator.inputs[1].shape, (1, 1))
+        self.assertEqual(y.creator.inputs[1].shape, (1, 2))
 
         y1 = f(x0, x1)
         y2 = f(x1, x2)
@@ -124,7 +124,7 @@ def f1(x):
     return result
 
 def f2(x):
-    return x ** x
+    return 1 / x
 
 def numerical_grad(f, x_, eps=1e-4):
     x = np.array(x_)

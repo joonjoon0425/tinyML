@@ -15,4 +15,5 @@ from ._function import (Function,
                         Transpose,
                         Neg,
                         Mul,
-                        Pow)
+                        Pow,
+                        Div)

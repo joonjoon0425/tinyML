@@ -123,12 +123,33 @@ class Mul(Function):
         return gx1, gx2
     
 class Pow(Function):
-    def forward(self, x, exponent):
-        assert x.shape[0] == x.shape[1], f'x.shape: {x.shape} cannnot be powered'
-        self.exponent = exponent
-        return x ** exponent
+    def forward(self, x1, x2):
+        return x1 ** x2
     
     def backward(self, gy):
         xp = get_array_module(gy)
-        x = self.inputs[0].data
-        return self.exponent * gy * x ** (self.exponent - 1), gy * (x ** self.exponent) * xp.log(self.exponent)
+        x1 = self.inputs[0].data
+        x2 = self.inputs[1].data
+        gx1 = x2 * gy * x1 ** (x2 - 1)
+        gx2 = gy * (x1 ** x2) * xp.log(x2)
+
+        gx1 = sum_to(gx1, x1.shape)
+        gx2 = sum_to(gx2, x2.shape)
+
+        return gx1, gx2
+
+class Div(Function):
+    def forward(self, x1, x2):
+        return x1 / x2
+    
+    def backward(self, gy):
+        x1 = self.inputs[0].data
+        x2 = self.inputs[1].data
+        inv = 1 / x2
+        gx1 = gy * inv
+        gx2 = - gy * x1 * (inv ** 2)
+
+        gx1 = sum_to(gx1, x1.shape)
+        gx2 = sum_to(gx2, x2.shape)
+
+        return gx1, gx2

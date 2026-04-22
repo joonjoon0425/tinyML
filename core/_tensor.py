@@ -54,7 +54,10 @@ class Tensor:
             other = as_tensor(other)
         return Add()(self, other)
     def __radd__(self, other):
-        return self.__add__(other)
+        from ._function import Add
+        if isinstance(other, (int, float)):
+            other = as_tensor(other)
+        return Add()(other, self)
     
     def __matmul__(self, other):
         from ._function import MatMul
@@ -63,8 +66,9 @@ class Tensor:
 #           other = as_tensor(other)
         return MatMul()(self, other)
     def __rmatmul__(self, other):
+        from ._function import MatMul
         assert isinstance(other, (int, float)), 'received tensor value. guess we should fix the code'
-        return self.__matmul__(other)
+        return MatMul()(other, self)
     
     def __mul__(self, other):
         from ._function import Mul
@@ -72,7 +76,21 @@ class Tensor:
             other = as_tensor(other)
         return Mul()(self, other)
     def __rmul__(self, other):
-        return self.__mul__(other)
+        from ._function import Mul
+        if isinstance(other, (int, float)):
+            other = as_tensor(other)
+        return Mul()(other, self)
+    
+    def __truediv__(self, other):
+        from ._function import Div
+        if isinstance(other, (int, float)):
+            other = as_tensor(other)
+        return Div()(self, other)
+    def __rtruediv__(self, other):
+        from ._function import Div
+        if isinstance(other, (int, float)):
+            other = as_tensor(other)
+        return Div()(other, self)
     
     def __pow__(self, exponent):
         from ._function import Pow
@@ -86,7 +104,8 @@ class Tensor:
     def __sub__(self, other):
         return self + (-other)
     def __rsub__(self, other):
-        return self.__sub__(other)
+        return other + (-self)
+    
     @property
     def T(self):
         from ._function import Transpose
@@ -182,6 +201,9 @@ def full(shape, fill_value):
     return Tensor(data)
 def empty(shape):
     return np.empty(shape=shape, dtype=np.float64)
+
+# tensor operations
+
 
 def get_array_module(data):
     '''
