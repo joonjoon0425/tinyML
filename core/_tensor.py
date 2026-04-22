@@ -75,7 +75,10 @@ class Tensor:
         return self.__mul__(other)
     
     def __pow__(self, exponent):
-        pass
+        from ._function import Pow
+        if isinstance(exponent, (int, float)):
+            exponent = as_tensor(exponent)
+        return Pow()(self, exponent)
 
     def __neg__(self):
         from ._function import Neg

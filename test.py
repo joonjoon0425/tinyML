@@ -101,12 +101,16 @@ class GradCorrectTest(unittest.TestCase):
         self.tol = 1e-6
     
     def test_composite(self):
-        val = np.asarray([[1, 2, 3], [1, 2, 3], [1, 2, 3]], dtype=np.float64)
+        # val = np.asarray([[1, 2, 3], [1, 2, 3], [1, 2, 3]], dtype=np.float64)
+        val = 3.
         x = core.as_tensor(val, requires_grad=True)
-        y = f1(x)
+        f = f2
+        y = f(x)
         y.backward()
-        dy_dx = numerical_grad(f1, val)
+        dy_dx = numerical_grad(f, val)
         
+        print(x.grad)
+        print(dy_dx)
         np.testing.assert_allclose(x.grad, dy_dx)
         
         
@@ -118,6 +122,9 @@ def f1(x):
         W = core.as_tensor(W)
         result = W @ x + 2
     return result
+
+def f2(x):
+    return x ** x
 
 def numerical_grad(f, x_, eps=1e-4):
     x = np.array(x_)

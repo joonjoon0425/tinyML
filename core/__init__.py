@@ -14,4 +14,5 @@ from ._function import (Function,
                         MatMul,
                         Transpose,
                         Neg,
-                        Mul)
+                        Mul,
+                        Pow)
